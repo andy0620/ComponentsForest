@@ -100,22 +100,22 @@ public:
     virtual ComponentState state() const = 0;
     
     // Lifecycle Management
-    virtual bool initialize(const QJsonObject& config) = 0;
-    virtual bool start() = 0;
-    virtual bool stop() = 0;
-    virtual bool reset() = 0;
+    [[nodiscard]] virtual bool initialize(const QJsonObject& config) = 0;
+    [[nodiscard]] virtual bool start() = 0;
+    [[nodiscard]] virtual bool stop() = 0;
+    [[nodiscard]] virtual bool reset() = 0;
     virtual void destroy() = 0;
     
     // Health & Status
-    virtual bool isHealthy() const = 0;
+    [[nodiscard]] virtual bool isHealthy() const = 0;
     virtual HealthStatus getHealthStatus() const = 0;
     virtual QJsonObject getStatus() const = 0;
     virtual QJsonObject getCapabilities() const = 0;
     
     // Configuration
-    virtual bool loadConfiguration(const QJsonObject& config) = 0;
-    virtual bool saveConfiguration(QJsonObject& config) const = 0;
-    virtual bool validateConfiguration(const QJsonObject& config) const = 0;
+    [[nodiscard]] virtual bool loadConfiguration(const QJsonObject& config) = 0;
+    [[nodiscard]] virtual bool saveConfiguration(QJsonObject& config) const = 0;
+    [[nodiscard]] virtual bool validateConfiguration(const QJsonObject& config) const = 0;
     virtual QJsonObject getConfigurationSchema() const = 0;
     
     // Event Handling
@@ -150,22 +150,22 @@ public:
     ComponentState state() const override;
     
     // Lifecycle Management
-    bool initialize(const QJsonObject& config) override;
-    bool start() override;
-    bool stop() override;
-    bool reset() override;
+    [[nodiscard]] bool initialize(const QJsonObject& config) override;
+    [[nodiscard]] bool start() override;
+    [[nodiscard]] bool stop() override;
+    [[nodiscard]] bool reset() override;
     void destroy() override;
     
     // Health & Status
-    bool isHealthy() const override;
+    [[nodiscard]] bool isHealthy() const override;
     HealthStatus getHealthStatus() const override;
     QJsonObject getStatus() const override;
     QJsonObject getCapabilities() const override;
     
     // Configuration
-    bool loadConfiguration(const QJsonObject& config) override;
-    bool saveConfiguration(QJsonObject& config) const override;
-    bool validateConfiguration(const QJsonObject& config) const override;
+    [[nodiscard]] bool loadConfiguration(const QJsonObject& config) override;
+    [[nodiscard]] bool saveConfiguration(QJsonObject& config) const override;
+    [[nodiscard]] bool validateConfiguration(const QJsonObject& config) const override;
     QJsonObject getConfigurationSchema() const override;
     
     // Event Handling
@@ -177,8 +177,8 @@ public:
     
     // Component Management
     Q_INVOKABLE void setComponentName(const QString& name);
-    Q_INVOKABLE bool isRunning() const;
-    Q_INVOKABLE bool isInitialized() const;
+    [[nodiscard]] Q_INVOKABLE bool isRunning() const;
+    [[nodiscard]] Q_INVOKABLE bool isInitialized() const;
     Q_INVOKABLE qint64 getUptime() const;
     Q_INVOKABLE QString getLastError() const;
     Q_INVOKABLE void clearError();
@@ -238,8 +238,8 @@ protected:
     virtual void onDependencyInjected(const QString& name, IComponent* component) { Q_UNUSED(name); Q_UNUSED(component); }
     
     // State Management
-    bool transitionTo(ComponentState newState);
-    bool canTransitionTo(ComponentState newState) const;
+    [[nodiscard]] bool transitionTo(ComponentState newState);
+    [[nodiscard]] bool canTransitionTo(ComponentState newState) const;
     void setError(const QString& error);
     
     // Logging Helpers
@@ -327,7 +327,7 @@ public:
     virtual ~IComponentFactory() = default;
     virtual BaseComponent* createComponent(const QString& type, const QJsonObject& config) = 0;
     virtual QStringList supportedTypes() const = 0;
-    virtual bool registerType(const QString& type, std::function<BaseComponent*()> creator) = 0;
+    [[nodiscard]] virtual bool registerType(const QString& type, std::function<BaseComponent*()> creator) = 0;
 };
 
 /**
@@ -337,12 +337,12 @@ public:
 class IComponentManager {
 public:
     virtual ~IComponentManager() = default;
-    virtual bool registerComponent(BaseComponent* component) = 0;
-    virtual bool unregisterComponent(const QString& componentId) = 0;
+    [[nodiscard]] virtual bool registerComponent(BaseComponent* component) = 0;
+    [[nodiscard]] virtual bool unregisterComponent(const QString& componentId) = 0;
     virtual BaseComponent* getComponent(const QString& componentId) const = 0;
     virtual QList<BaseComponent*> getAllComponents() const = 0;
-    virtual bool startAll() = 0;
-    virtual bool stopAll() = 0;
+    [[nodiscard]] virtual bool startAll() = 0;
+    [[nodiscard]] virtual bool stopAll() = 0;
     virtual QJsonObject getSystemStatus() const = 0;
 };
 

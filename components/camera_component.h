@@ -179,19 +179,19 @@ public:
     
     // Device Management
     virtual QList<CameraDeviceInfo> scanDevices() = 0;
-    virtual bool connectCamera(const QString& identifier) = 0;
-    virtual bool disconnectCamera() = 0;
+    [[nodiscard]] virtual bool connectCamera(const QString& identifier) = 0;
+    [[nodiscard]] virtual bool disconnectCamera() = 0;
     virtual CameraDeviceInfo getCurrentDevice() const = 0;
     
     // Basic Acquisition Control
-    virtual bool startAcquisition() = 0;
-    virtual bool stopAcquisition() = 0;
-    virtual bool grabSingleFrame() = 0;
+    [[nodiscard]] virtual bool startAcquisition() = 0;
+    [[nodiscard]] virtual bool stopAcquisition() = 0;
+    [[nodiscard]] virtual bool grabSingleFrame() = 0;
     
     // Core Parameters (must be supported by all cameras)
-    virtual bool setExposureTime(double microseconds) = 0;
-    virtual bool setGain(double gain) = 0;
-    virtual bool setROI(const QRect& roi) = 0;
+    [[nodiscard]] virtual bool setExposureTime(double microseconds) = 0;
+    [[nodiscard]] virtual bool setGain(double gain) = 0;
+    [[nodiscard]] virtual bool setROI(const QRect& roi) = 0;
     virtual double exposureTime() const = 0;
     virtual double gain() const = 0;
     virtual QRect roi() const = 0;
@@ -203,32 +203,32 @@ public:
     // ========== Virtual Methods (Can be overridden) ==========
     
     // Advanced Acquisition Control
-    virtual bool executeSoftwareTrigger();
-    virtual bool setTriggerMode(TriggerMode mode);
+    [[nodiscard]] virtual bool executeSoftwareTrigger();
+    [[nodiscard]] virtual bool setTriggerMode(TriggerMode mode);
     virtual TriggerMode triggerMode() const;
     
     // Extended Parameters
-    virtual bool setFrameRate(double fps);
-    virtual bool setPixelFormat(PixelFormat format);
-    virtual bool setBinning(int horizontal, int vertical);
-    virtual bool setGamma(double gamma);
-    virtual bool setWhiteBalance(double red, double green, double blue);
+    [[nodiscard]] virtual bool setFrameRate(double fps);
+    [[nodiscard]] virtual bool setPixelFormat(PixelFormat format);
+    [[nodiscard]] virtual bool setBinning(int horizontal, int vertical);
+    [[nodiscard]] virtual bool setGamma(double gamma);
+    [[nodiscard]] virtual bool setWhiteBalance(double red, double green, double blue);
     virtual double frameRate() const;
     virtual PixelFormat pixelFormat() const;
     virtual QSize binning() const;
     virtual double gamma() const;
     
     // Auto Features
-    virtual bool setAutoExposure(bool enable);
-    virtual bool setAutoGain(bool enable);
-    virtual bool setAutoWhiteBalance(bool enable);
-    virtual bool isAutoExposureEnabled() const;
-    virtual bool isAutoGainEnabled() const;
+    [[nodiscard]] virtual bool setAutoExposure(bool enable);
+    [[nodiscard]] virtual bool setAutoGain(bool enable);
+    [[nodiscard]] virtual bool setAutoWhiteBalance(bool enable);
+    [[nodiscard]] virtual bool isAutoExposureEnabled() const;
+    [[nodiscard]] virtual bool isAutoGainEnabled() const;
     
     // Buffer Management
-    virtual bool setBufferCount(int count);
+    [[nodiscard]] virtual bool setBufferCount(int count);
     virtual int bufferCount() const;
-    virtual bool clearBuffers();
+    [[nodiscard]] virtual bool clearBuffers();
     virtual int droppedFrameCount() const;
     
     // Performance & Statistics
@@ -238,35 +238,35 @@ public:
     virtual QJsonObject getPerformanceMetrics() const;
     
     // Advanced Features
-    virtual bool saveConfiguration(const QString& filePath) const;
-    virtual bool loadConfiguration(const QString& filePath);
-    virtual bool setUserDefinedName(const QString& name);
+    [[nodiscard]] virtual bool saveConfiguration(const QString& filePath) const;
+    [[nodiscard]] virtual bool loadConfiguration(const QString& filePath);
+    [[nodiscard]] virtual bool setUserDefinedName(const QString& name);
     virtual QString userDefinedName() const;
     
     // Feature Query
-    virtual bool isFeatureSupported(const QString& feature) const;
+    [[nodiscard]] virtual bool isFeatureSupported(const QString& feature) const;
     virtual QVariant getFeatureValue(const QString& feature) const;
-    virtual bool setFeatureValue(const QString& feature, const QVariant& value);
+    [[nodiscard]] virtual bool setFeatureValue(const QString& feature, const QVariant& value);
     
     // ========== Common Methods (Implemented in base class) ==========
     
     // State Query
     Q_INVOKABLE CameraState cameraState() const;
-    Q_INVOKABLE bool isConnected() const;
-    Q_INVOKABLE bool isAcquiring() const;
+    [[nodiscard]] Q_INVOKABLE bool isConnected() const;
+    [[nodiscard]] Q_INVOKABLE bool isAcquiring() const;
     Q_INVOKABLE QString cameraStateString() const;
     
     // Synchronization Support
-    Q_INVOKABLE bool enableTimestamp(bool enable);
-    Q_INVOKABLE bool synchronizeWith(CameraComponent* other);
+    [[nodiscard]] Q_INVOKABLE bool enableTimestamp(bool enable);
+    [[nodiscard]] Q_INVOKABLE bool synchronizeWith(CameraComponent* other);
     Q_INVOKABLE void setMaster(bool isMaster);
-    Q_INVOKABLE bool isMaster() const;
+    [[nodiscard]] Q_INVOKABLE bool isMaster() const;
     
     // Error Handling
     Q_INVOKABLE QString getLastCameraError() const;
-    Q_INVOKABLE bool recoverFromError();
+    [[nodiscard]] Q_INVOKABLE bool recoverFromError();
     Q_INVOKABLE void setAutoReconnect(bool enable);
-    Q_INVOKABLE bool isAutoReconnectEnabled() const;
+    [[nodiscard]] Q_INVOKABLE bool isAutoReconnectEnabled() const;
     
     // Utility Methods
     Q_INVOKABLE QString pixelFormatToString(PixelFormat format) const;
@@ -393,7 +393,7 @@ public:
     virtual ~ICameraFactory() = default;
     virtual CameraComponent* createCamera(const QString& manufacturer, const QJsonObject& config) = 0;
     virtual QStringList supportedManufacturers() const = 0;
-    virtual bool registerManufacturer(const QString& name, std::function<CameraComponent*()> creator) = 0;
+    [[nodiscard]] virtual bool registerManufacturer(const QString& name, std::function<CameraComponent*()> creator) = 0;
 };
 
 } // namespace ComponentsForest

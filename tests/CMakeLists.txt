@@ -18,12 +18,22 @@ set(CMAKE_AUTORCC ON)
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core
-    ${CMAKE_CURRENT_SOURCE_DIR}/../OpenCV
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Do3ThinkCamera
-    ${CMAKE_CURRENT_SOURCE_DIR}/../viewers/do3think_camera_viewer
-    ${OpenCV_INCLUDE_DIRS}
 )
+
+# BaseComponent Test
+add_executable(test_base_component
+    test_base_component.cpp
+)
+
+target_link_libraries(test_base_component
+    ComponentsForestCore
+    Qt6::Core
+    Qt6::Test
+    gtest_main
+)
+
+add_test(NAME BaseComponentTest COMMAND test_base_component)
+
 
 # Preprocessor UI Test
 add_executable(test_preprocessor_ui
@@ -32,21 +42,36 @@ add_executable(test_preprocessor_ui
     ../OpenCV/preprocessor_base.cpp
     ../OpenCV/preprocessor_control_panel.cpp
     ../OpenCV/simple_edge_preprocessor.cpp
-    ../core/base_component.cpp
-    ../core/camera_component.cpp
 )
 
 target_link_libraries(test_preprocessor_ui
+    ComponentsForestCore
     Qt6::Core
     Qt6::Widgets
     Qt6::Test
-    GTest::GTest
-    GTest::Main
+    gtest_main
     ${OpenCV_LIBS}
 )
 
 # Add test
 add_test(NAME PreprocessorUITest COMMAND test_preprocessor_ui)
+
+
+# Do3ThinkCameraComponent Test
+add_executable(test_dothink_camera
+    test_dothink_camera.cpp
+)
+
+target_link_libraries(test_dothink_camera
+    Do3ThinkCameraComponent
+    ComponentsForestCore
+    Qt6::Core
+    Qt6::Test
+    gmock_main
+)
+
+add_test(NAME Do3ThinkCameraComponentTest COMMAND test_dothink_camera)
+
 
 # Enable testing
 enable_testing()

@@ -225,10 +225,20 @@ if(BUILD_VIEWERS)
 endif()
 
 # Testing
-option(BUILD_TESTS "Build test suite" OFF)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG release-1.12.1
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+option(BUILD_TESTS "Build test suite" ON)
 if(BUILD_TESTS)
     enable_testing()
-    # add_subdirectory(tests)  # Uncomment when tests directory exists
+    add_subdirectory(tests)
 endif()
 
 # Package configuration

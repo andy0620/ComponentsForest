@@ -15,6 +15,7 @@
 #include <atomic>
 #include "../components/camera_component.h"
 #include "do3thinkcameracomponent_export.h"
+#include "dvp_sdk_wrapper_interface.h"
 
 // Forward declarations for preprocessors
 namespace ComponentsForest {
@@ -27,10 +28,14 @@ class DenoisePreProcessor;
 }
 }
 
-// Include our unified DVP wrapper that handles both stub and dynamic loading
-#include "dvp_wrapper.h"
-
 namespace ComponentsForest {
+
+namespace Do3ThinkCameraConstants {
+    constexpr dvpUint32 kUserDataNameOffset = 0;
+    constexpr dvpUint32 kUserDataGeneralOffset = 256;
+    constexpr dvpUint32 kUserDataNameMaxSize = 256;
+    constexpr dvpUint32 kDefaultFrameTimeoutMs = 5000;
+}
 
 /**
  * @brief Do3Think Specific Device Information
@@ -58,7 +63,10 @@ class DO3THINKCAMERACOMPONENT_EXPORT Do3ThinkCameraComponent : public CameraComp
     Q_PROPERTY(double sensorTemperature READ sensorTemperature NOTIFY temperatureChanged)
 
 public:
+    // Production constructor
     explicit Do3ThinkCameraComponent(QObject* parent = nullptr);
+    // Testing constructor with dependency injection
+    explicit Do3ThinkCameraComponent(std::shared_ptr<IDvpSdkWrapper> sdkWrapper, QObject* parent = nullptr);
     ~Do3ThinkCameraComponent() override;
     
     // Override component version
@@ -68,19 +76,19 @@ public:
     
     // Device Management
     QList<CameraDeviceInfo> scanDevices() override;
-    bool connectCamera(const QString& identifier) override;
-    bool disconnectCamera() override;
+    [[nodiscard]] bool connectCamera(const QString& identifier) override;
+    [[nodiscard]] bool disconnectCamera() override;
     CameraDeviceInfo getCurrentDevice() const override;
     
     // Basic Acquisition Control
-    bool startAcquisition() override;
-    bool stopAcquisition() override;
-    bool grabSingleFrame() override;
+    [[nodiscard]] bool startAcquisition() override;
+    [[nodiscard]] bool stopAcquisition() override;
+    [[nodiscard]] bool grabSingleFrame() override;
     
     // Core Parameters (must be supported)
-    bool setExposureTime(double microseconds) override;
-    bool setGain(double gain) override;
-    bool setROI(const QRect& roi) override;
+    [[nodiscard]] bool setExposureTime(double microseconds) override;
+    [[nodiscard]] bool setGain(double gain) override;
+    [[nodiscard]] bool setROI(const QRect& roi) override;
     double exposureTime() const override;
     double gain() const override;
     QRect roi() const override;
@@ -91,32 +99,32 @@ public:
     // ========== Virtual Methods Override from CameraComponent ==========
     
     // Advanced Acquisition Control
-    bool executeSoftwareTrigger() override;
-    bool setTriggerMode(TriggerMode mode) override;
+    [[nodiscard]] bool executeSoftwareTrigger() override;
+    [[nodiscard]] bool setTriggerMode(TriggerMode mode) override;
     TriggerMode triggerMode() const override;
     
     // Extended Parameters
-    bool setFrameRate(double fps) override;
-    bool setPixelFormat(PixelFormat format) override;
-    bool setBinning(int horizontal, int vertical) override;
-    bool setGamma(double gamma) override;
-    bool setWhiteBalance(double red, double green, double blue) override;
+    [[nodiscard]] bool setFrameRate(double fps) override;
+    [[nodiscard]] bool setPixelFormat(PixelFormat format) override;
+    [[nodiscard]] bool setBinning(int horizontal, int vertical) override;
+    [[nodiscard]] bool setGamma(double gamma) override;
+    [[nodiscard]] bool setWhiteBalance(double red, double green, double blue) override;
     double frameRate() const override;
     PixelFormat pixelFormat() const override;
     QSize binning() const override;
     double gamma() const override;
     
     // Auto Features
-    bool setAutoExposure(bool enable) override;
-    bool setAutoGain(bool enable) override;
-    bool setAutoWhiteBalance(bool enable) override;
-    bool isAutoExposureEnabled() const override;
-    bool isAutoGainEnabled() const override;
+    [[nodiscard]] bool setAutoExposure(bool enable) override;
+    [[nodiscard]] bool setAutoGain(bool enable) override;
+    [[nodiscard]] bool setAutoWhiteBalance(bool enable) override;
+    [[nodiscard]] bool isAutoExposureEnabled() const override;
+    [[nodiscard]] bool isAutoGainEnabled() const override;
     
     // Buffer Management
-    bool setBufferCount(int count) override;
+    [[nodiscard]] bool setBufferCount(int count) override;
     int bufferCount() const override;
-    bool clearBuffers() override;
+    [[nodiscard]] bool clearBuffers() override;
     int droppedFrameCount() const override;
     
     // Performance & Statistics
@@ -125,30 +133,30 @@ public:
     QJsonObject getStatistics() const override;
     
     // Advanced Features
-    bool saveConfiguration(const QString& filePath) const override;
-    bool loadConfiguration(const QString& filePath) override;
-    bool setUserDefinedName(const QString& name) override;
+    [[nodiscard]] bool saveConfiguration(const QString& filePath) const override;
+    [[nodiscard]] bool loadConfiguration(const QString& filePath) override;
+    [[nodiscard]] bool setUserDefinedName(const QString& name) override;
     QString userDefinedName() const override;
     
     // Feature Query
-    bool isFeatureSupported(const QString& feature) const override;
+    [[nodiscard]] bool isFeatureSupported(const QString& feature) const override;
     QVariant getFeatureValue(const QString& feature) const override;
-    bool setFeatureValue(const QString& feature, const QVariant& value) override;
+    [[nodiscard]] bool setFeatureValue(const QString& feature, const QVariant& value) override;
     
     // ========== Do3Think Specific Methods ==========
     
     // Color Correction (Do3Think specific)
-    Q_INVOKABLE bool setColorCorrectionMatrix(const QMatrix3x3& matrix);
+    [[nodiscard]] Q_INVOKABLE bool setColorCorrectionMatrix(const QMatrix3x3& matrix);
     Q_INVOKABLE QMatrix3x3 colorCorrectionMatrix() const;
-    Q_INVOKABLE bool enableColorCorrection(bool enable);
-    Q_INVOKABLE bool supportsColorCorrection() const;
+    [[nodiscard]] Q_INVOKABLE bool enableColorCorrection(bool enable);
+    [[nodiscard]] Q_INVOKABLE bool supportsColorCorrection() const;
     
     // HDR Features (Do3Think specific)
-    Q_INVOKABLE bool setHDRMode(bool enable);
-    Q_INVOKABLE bool isHDREnabled() const;
-    Q_INVOKABLE bool setHDRLevels(int levels);
+    [[nodiscard]] Q_INVOKABLE bool setHDRMode(bool enable);
+    [[nodiscard]] Q_INVOKABLE bool isHDREnabled() const;
+    [[nodiscard]] Q_INVOKABLE bool setHDRLevels(int levels);
     Q_INVOKABLE int hdrLevels() const;
-    Q_INVOKABLE bool supportsHDR() const;
+    [[nodiscard]] Q_INVOKABLE bool supportsHDR() const;
     
     // Sensor Information (Do3Think specific)
     Q_INVOKABLE double sensorTemperature() const;
@@ -156,41 +164,34 @@ public:
     Q_INVOKABLE QSize sensorResolution() const;
     
     // Advanced Trigger (Do3Think specific)
-    Q_INVOKABLE bool setTriggerDelay(double microseconds);
+    [[nodiscard]] Q_INVOKABLE bool setTriggerDelay(double microseconds);
     Q_INVOKABLE double triggerDelay() const;
-    Q_INVOKABLE bool setTriggerDivider(int divider);
+    [[nodiscard]] Q_INVOKABLE bool setTriggerDivider(int divider);
     Q_INVOKABLE int triggerDivider() const;
     
     // Stream Control (Do3Think specific)
-    Q_INVOKABLE bool setStreamMode(int mode);
+    [[nodiscard]] Q_INVOKABLE bool setStreamMode(int mode);
     Q_INVOKABLE int streamMode() const;
-    Q_INVOKABLE bool setPacketSize(int size);
+    [[nodiscard]] Q_INVOKABLE bool setPacketSize(int size);
     Q_INVOKABLE int packetSize() const;
     
     // Lookup Table (Do3Think specific)
-    Q_INVOKABLE bool setLUT(const QVector<quint16>& lut);
+    [[nodiscard]] Q_INVOKABLE bool setLUT(const QVector<quint16>& lut);
     Q_INVOKABLE QVector<quint16> getLUT() const;
-    Q_INVOKABLE bool enableLUT(bool enable);
-    Q_INVOKABLE bool isLUTEnabled() const;
+    [[nodiscard]] Q_INVOKABLE bool enableLUT(bool enable);
+    [[nodiscard]] Q_INVOKABLE bool isLUTEnabled() const;
     
     // GPIO Control (Do3Think specific)
-    Q_INVOKABLE bool setGPIODirection(int pin, bool output);
-    Q_INVOKABLE bool setGPIOValue(int pin, bool value);
-    Q_INVOKABLE bool getGPIOValue(int pin) const;
+    [[nodiscard]] Q_INVOKABLE bool setGPIODirection(int pin, bool output);
+    [[nodiscard]] Q_INVOKABLE bool setGPIOValue(int pin, bool value);
+    [[nodiscard]] Q_INVOKABLE bool getGPIOValue(int pin) const;
     
     // User Data (Do3Think specific)
-    Q_INVOKABLE bool writeUserData(const QByteArray& data);
+    [[nodiscard]] Q_INVOKABLE bool writeUserData(const QByteArray& data);
     Q_INVOKABLE QByteArray readUserData() const;
     
     // Image Processing Pipeline (Do3Think specific)
-    Q_INVOKABLE bool enableImageProcessing(bool enable);
-    Q_INVOKABLE bool isImageProcessingEnabled() const;
-    Q_INVOKABLE bool enablePreprocessor(const QString& type, bool enable);
-    Q_INVOKABLE bool isPreprocessorEnabled(const QString& type) const;
-    Q_INVOKABLE bool setPreprocessorParameter(const QString& type, const QString& parameter, const QVariant& value);
-    Q_INVOKABLE QVariant getPreprocessorParameter(const QString& type, const QString& parameter) const;
-    Q_INVOKABLE void setProcessingOrder(const QStringList& order);
-    Q_INVOKABLE QStringList getProcessingOrder() const;
+    // This is now delegated to ProcessingPipelineManager
 
 signals:
     // Do3Think specific signals
@@ -201,12 +202,6 @@ signals:
     void gpioStateChanged(int pin, bool value);
     void streamModeChanged(int mode);
     void userDataWritten();
-    
-    // Image processing signals
-    void processingEnabledChanged(bool enabled);
-    void preprocessorEnabledChanged(const QString& type, bool enabled);
-    void processingOrderChanged(const QStringList& order);
-    void processingPerformanceUpdate(double fps, double latency);
 
 protected:
     // BaseComponent Virtual Methods Override
@@ -285,23 +280,7 @@ private:
     } m_callbackData;
     
     // Image Processing Pipeline
-    struct ImageProcessingState {
-        bool processingEnabled{false};
-        bool blurEnabled{false};
-        bool edgeEnabled{false};
-        bool denoiseEnabled{false};
-        QStringList processingOrder;
-        QMutex processingMutex;
-        double processingLatency{0.0};
-    } m_processingState;
-    
-    // Preprocessor instances - TODO: Re-enable when preprocessing pipeline is fixed
-    /*
-    std::unique_ptr<ComponentsForest::OpenCV::PreProcessingPipeline> m_processingPipeline;
-    std::unique_ptr<ComponentsForest::OpenCV::BlurPreProcessor> m_blurProcessor;
-    std::unique_ptr<ComponentsForest::OpenCV::EdgePreProcessor> m_edgeProcessor;
-    std::unique_ptr<ComponentsForest::OpenCV::DenoisePreProcessor> m_denoiseProcessor;
-    */
+    std::unique_ptr<ProcessingPipelineManager> m_pipelineManager;
     
     // Helper Methods
     bool initializeDo3ThinkDevice(dvpHandle handle);
@@ -323,6 +302,8 @@ private:
     // Static callback wrapper - matches SDK signature dvpStreamCallback
     static dvpInt32 frameCallback(dvpHandle handle, dvpStreamEvent event, void* pContext, dvpFrame* pFrame, void* pBuffer);
     
+    std::shared_ptr<IDvpSdkWrapper> m_sdkWrapper;
+
     Q_DISABLE_COPY(Do3ThinkCameraComponent)
 };
 
