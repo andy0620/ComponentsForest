@@ -1,0 +1,190 @@
+name: QML Camera Viewer CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'viewers/qml_camera_viewer/**'
+      - 'qml_bridge/**'
+      - 'components/**'
+      - '.github/workflows/qml_viewer_ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'viewers/qml_camera_viewer/**'
+      - 'qml_bridge/**'
+      - 'components/**'
+
+env:
+  QT_VERSION: '6.9.1'
+  BUILD_TYPE: Release
+
+jobs:
+  build-linux:
+    name: Build on Linux
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: 'linux'
+        target: 'desktop'
+        modules: 'qtcharts qtquick3d'
+        cache: true
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential cmake ninja-build \
+          libgl1-mesa-dev libxkbcommon-dev \
+          libxcb-xinerama0 libxcb-cursor0
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build -S viewers/qml_camera_viewer \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DBUILD_STANDALONE=ON \
+          -GNinja
+    
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+    
+    - name: Run tests
+      run: |
+        cd build
+        ctest -C ${{ env.BUILD_TYPE }} --output-on-failure || true
+    
+    - name: Package
+      run: |
+        cd build
+        cpack -G TGZ
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: qml-viewer-linux
+        path: build/*.tar.gz
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-2022
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        modules: 'qtcharts qtquick3d'
+        cache: true
+    
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build -S viewers/qml_camera_viewer `
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+          -DBUILD_STANDALONE=ON `
+          -G "Visual Studio 17 2022" -A x64
+    
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+    
+    - name: Deploy Qt
+      run: |
+        cd build/${{ env.BUILD_TYPE }}
+        windeployqt.exe `
+          --qmldir ../../viewers/qml_camera_viewer/qml `
+          --quick `
+          --no-translations `
+          QMLCameraViewer.exe
+    
+    - name: Package
+      run: |
+        cd build
+        cpack -G ZIP -C ${{ env.BUILD_TYPE }}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: qml-viewer-windows
+        path: build/*.zip
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-12
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: 'mac'
+        target: 'desktop'
+        modules: 'qtcharts qtquick3d'
+        cache: true
+    
+    - name: Configure CMake
+      run: |
+        cmake -B build -S viewers/qml_camera_viewer \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DBUILD_STANDALONE=ON
+    
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+    
+    - name: Deploy Qt
+      run: |
+        cd build
+        macdeployqt QMLCameraViewer.app -qmldir=../viewers/qml_camera_viewer/qml
+    
+    - name: Create DMG
+      run: |
+        cd build
+        hdiutil create -volname QMLCameraViewer -srcfolder QMLCameraViewer.app -ov -format UDZO QMLCameraViewer.dmg
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: qml-viewer-macos
+        path: build/*.dmg
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: qml-viewer-v${{ github.run_number }}
+        name: QML Camera Viewer Release ${{ github.run_number }}
+        draft: false
+        prerelease: false
+        files: |
+          qml-viewer-linux/*.tar.gz
+          qml-viewer-windows/*.zip
+          qml-viewer-macos/*.dmg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  qml-camera-viewer:
+    build:
+      context: ../..
+      dockerfile: viewers/qml_camera_viewer/Dockerfile
+      args:
+        - QT_VERSION=6.9.1
+        - BUILD_TYPE=Release
+    
+    image: componentsforest/qml-camera-viewer:latest
+    
+    container_name: qml_camera_viewer
+    
+    # Required for GUI applications
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - QT_QUICK_CONTROLS_STYLE=Material
+      - QSG_RENDER_LOOP=threaded
+      - QT_LOGGING_RULES=ComponentsForest.*=true
+      # Camera discovery settings
+      - CAMERA_DISCOVERY_INTERVAL=2000
+      - CAMERA_DISCOVERY_TIMEOUT=5000
+    
+    # X11 socket and device access
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/home/appuser/.Xauthority:ro
+      # USB devices for cameras
+      - /dev/bus/usb:/dev/bus/usb
+      # Shared memory for better performance
+      - /dev/shm:/dev/shm
+      # Optional: persistent configuration
+      - ./config:/home/appuser/.config/ComponentsForest
+    
+    # Network mode for camera discovery
+    network_mode: host
+    
+    # Device access for cameras
+    devices:
+      - /dev/dri:/dev/dri  # GPU acceleration
+      # Add specific camera devices if needed
+      # - /dev/video0:/dev/video0
+    
+    # Security options
+    security_opt:
+      - seccomp:unconfined  # Required for some camera SDKs
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "pgrep", "QMLCameraViewer"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Development container with source code mounted
+  qml-viewer-dev:
+    build:
+      context: ../..
+      dockerfile: viewers/qml_camera_viewer/Dockerfile
+      target: builder
+    
+    image: componentsforest/qml-viewer-dev:latest
+    
+    container_name: qml_viewer_dev
+    
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - CMAKE_BUILD_TYPE=Debug
+      - QT_QML_DEBUG=1
+      - QML_DISABLE_DISK_CACHE=1
+    
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/home/appuser/.Xauthority:ro
+      - ../..:/app:rw  # Mount source code for development
+      - /dev/bus/usb:/dev/bus/usb
+    
+    network_mode: host
+    
+    devices:
+      - /dev/dri:/dev/dri
+    
+    working_dir: /app
+    
+    # Override entrypoint for development
+    entrypoint: /bin/bash
+    command: -c "cd /app && ./build_qml_viewer.sh --debug && ./build_qml_debug/run_qml_viewer.sh"
+    
+    profiles:
+      - development
+
+# Networks (using host network for camera discovery)
+# networks:
+#   default:
+#     driver: bridge
+
+# Volumes for persistent data
+volumes:
+  config:
+    driver: local

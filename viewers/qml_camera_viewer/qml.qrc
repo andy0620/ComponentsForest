@@ -1,0 +1,35 @@
+<!-- ComponentsForest QML Camera Viewer Resources -->
+<!-- Lists all QML files embedded in the application -->
+<RCC>
+    <qresource prefix="/">
+        <!-- Main application entry point -->
+        <file>qml/main.qml</file>
+        
+        <!-- Core UI components -->
+        <file>qml/components/CameraControlPanel.qml</file>
+        <file>qml/components/CameraListDelegate.qml</file>
+        <file>qml/components/CameraParameters.qml</file>
+        <file>qml/components/ConnectionIndicator.qml</file>
+        <file>qml/components/ImageDisplay.qml</file>
+        <file>qml/components/ParameterControls.qml</file>
+        <file>qml/components/SettingsPanel.qml</file>
+        <file>qml/components/StatisticsPanel.qml</file>
+        
+        <!-- Control widgets -->
+        <file>qml/controls/ConnectionControls.qml</file>
+        <file>qml/controls/AcquisitionControls.qml</file>
+        
+        <!-- Optional: Add styles and themes if they exist -->
+        <!-- <file>qml/styles/MaterialTheme.qml</file> -->
+        <!-- <file>qml/styles/DarkTheme.qml</file> -->
+    </qresource>
+    
+    <!-- Optional: Icons and images resource group -->
+    <!-- <qresource prefix="/icons">
+        <file>icons/camera.png</file>
+        <file>icons/connect.png</file>
+        <file>icons/disconnect.png</file>
+        <file>icons/play.png</file>
+        <file>icons/stop.png</file>
+    </qresource> -->
+</RCC>

@@ -1,0 +1,22 @@
+﻿# Build / cache / tool outputs
+build/
+build_*/
+build_viewer_standalone/
+.cmake/
+.cmake*/
+.qt/
+cmake-*/
+cmake.tar.gz
+
+# Logs & screenshots
+*.log
+screenshot_*.png
+qml_verification_*.log
+
+# Windows reserved names
+nul
+con
+prn
+aux
+com[1-9]
+lpt[1-9]

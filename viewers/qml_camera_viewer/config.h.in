@@ -1,0 +1,56 @@
+// ComponentsForest QML Camera Viewer Configuration
+// Auto-generated from config.h.in by CMake
+
+#ifndef QML_CAMERA_VIEWER_CONFIG_H
+#define QML_CAMERA_VIEWER_CONFIG_H
+
+// Version information
+#define QML_VIEWER_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define QML_VIEWER_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define QML_VIEWER_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define QML_VIEWER_VERSION_STRING "@PROJECT_VERSION@"
+
+// Build configuration
+#cmakedefine BUILD_STANDALONE
+#cmakedefine BUILD_WITH_OPENCV
+#cmakedefine HAS_OPENCV
+#cmakedefine USE_DYNAMIC_LOADING
+
+// Qt version
+#define QT_VERSION_STRING "@Qt6_VERSION@"
+
+// Platform detection
+#ifdef _WIN32
+    #define PLATFORM_WINDOWS
+#elif defined(__linux__)
+    #define PLATFORM_LINUX
+#elif defined(__APPLE__)
+    #define PLATFORM_MACOS
+#endif
+
+// Default settings
+#define DEFAULT_FPS_LIMIT 30
+#define DEFAULT_BUFFER_SIZE 10
+#define DEFAULT_RECONNECT_INTERVAL 5000  // ms
+#define DEFAULT_STATS_UPDATE_INTERVAL 1000  // ms
+
+// Performance monitoring
+#define ENABLE_PERFORMANCE_MONITORING
+#define PERFORMANCE_LOG_INTERVAL 10000  // ms
+
+// Camera discovery
+#define CAMERA_DISCOVERY_INTERVAL 2000  // ms
+#define CAMERA_DISCOVERY_TIMEOUT 5000   // ms
+
+// Build type
+#ifdef CMAKE_BUILD_TYPE
+    #define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+#else
+    #define BUILD_TYPE "Release"
+#endif
+
+// Installation paths
+#define INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@"
+#define QML_IMPORT_PATH "@QML_IMPORT_PATH@"
+
+#endif // QML_CAMERA_VIEWER_CONFIG_H

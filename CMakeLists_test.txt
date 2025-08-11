@@ -1,0 +1,92 @@
+# CMake configuration for QML Viewer Tests
+# This can be included in the main CMakeLists.txt or used standalone
+
+cmake_minimum_required(VERSION 3.16)
+
+# Enable testing
+enable_testing()
+
+# Find Qt Test module
+find_package(Qt6 REQUIRED COMPONENTS Core Test Qml Quick Widgets)
+
+# Automatic MOC for Qt
+set(CMAKE_AUTOMOC ON)
+
+# Create test executable
+add_executable(test_qml_viewer
+    test_qml_viewer.cpp
+    
+    # Include source files needed for testing
+    components/base_component.cpp
+    components/camera_component.cpp
+    qml_bridge/camera_bridge.cpp
+    qml_bridge/machine_bridge.cpp
+)
+
+# Set include directories
+target_include_directories(test_qml_viewer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/components
+    ${CMAKE_CURRENT_SOURCE_DIR}/qml_bridge
+)
+
+# Link Qt libraries
+target_link_libraries(test_qml_viewer
+    Qt6::Core
+    Qt6::Test
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::Widgets
+)
+
+# Add compile definitions
+target_compile_definitions(test_qml_viewer PRIVATE
+    QT_QML_DEBUG
+    COMPONENTSFORESTCORE_STATIC_DEFINE
+)
+
+# Set C++ standard
+set_target_properties(test_qml_viewer PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+
+# Register the test with CTest
+add_test(NAME QMLViewerTests COMMAND test_qml_viewer)
+
+# Set test properties
+set_tests_properties(QMLViewerTests PROPERTIES
+    TIMEOUT 60
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"  # Run tests without display
+)
+
+# Optional: Create custom test target
+add_custom_target(run_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --verbose
+    DEPENDS test_qml_viewer
+    COMMENT "Running QML Viewer Tests"
+)
+
+# Optional: Coverage target if using GCC/Clang
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+    if(ENABLE_COVERAGE)
+        target_compile_options(test_qml_viewer PRIVATE --coverage)
+        target_link_options(test_qml_viewer PRIVATE --coverage)
+        
+        add_custom_target(coverage
+            COMMAND lcov --capture --directory . --output-file coverage.info
+            COMMAND lcov --remove coverage.info '/usr/*' --output-file coverage.info
+            COMMAND lcov --list coverage.info
+            DEPENDS run_tests
+            COMMENT "Generating coverage report"
+        )
+    endif()
+endif()
+
+# Print test configuration
+message(STATUS "QML Viewer Tests Configuration:")
+message(STATUS "  Test executable: test_qml_viewer")
+message(STATUS "  Qt version: ${Qt6_VERSION}")
+message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Coverage enabled: ${ENABLE_COVERAGE}")

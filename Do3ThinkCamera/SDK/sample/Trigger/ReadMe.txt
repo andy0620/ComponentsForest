@@ -1,0 +1,21 @@
+##度申相机 参考案例4
+关键字：
+软触发、外部触发、循环触发、Strobe信号
+
+功能介绍：
+软触发和外部触发相关参数的调节，如触发信号抖动过滤、延迟、定时器设置。触发输入信号和strobe输出信号的配置。
+
+本案例使用的触发接口能使用但已被弃用，推荐使用新的API接口来外触发,详细使用方法可以参考API使用手册，也可以参考Dvp2_QtTrigger案例
+代码仓库：https://gitee.com/DO3THINK
+```
+dvpSetLineInverter
+dvpSetLineLevel
+dvpSetLineMode
+dvpSetLineSource
+dvpGetLineInfo
+dvpGetLineInverter
+dvpGetLineLevel
+dvpGetLineMode
+dvpGetLineSource
+dvpGetLineStatus
+```

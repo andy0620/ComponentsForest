@@ -1,0 +1,96 @@
+cmake_minimum_required(VERSION 3.16)
+project(Do3ThinkCameraViewer VERSION 1.0.0 LANGUAGES CXX)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+# Find required Qt6 components
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Concurrent Network Charts)
+
+# Include directories
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../components
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Do3ThinkCamera
+)
+
+# Viewer application sources
+set(VIEWER_SOURCES
+    main.cpp
+    main_ui.cpp
+    machine.cpp
+)
+
+# Viewer application headers
+set(VIEWER_HEADERS
+    main_ui.h
+    machine.h
+)
+
+# Create executable
+add_executable(Do3ThinkCameraViewer
+    ${VIEWER_SOURCES}
+    ${VIEWER_HEADERS}
+)
+
+# Add library directory
+link_directories(${CMAKE_BINARY_DIR}/Release)
+
+# Link libraries
+target_link_libraries(Do3ThinkCameraViewer
+    Qt6::Core
+    Qt6::Widgets
+    Qt6::Concurrent
+    Qt6::Network
+    Qt6::Charts
+    ComponentsForestCore
+    Do3ThinkCameraComponent
+)
+
+# Set executable properties
+set_target_properties(Do3ThinkCameraViewer PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)
+
+# Install rules
+install(TARGETS Do3ThinkCameraViewer
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION .
+)
+
+# Copy required DLLs to output directory on Windows
+if(WIN32)
+    add_custom_command(TARGET Do3ThinkCameraViewer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:ComponentsForestCore>
+            $<TARGET_FILE:Do3ThinkCameraComponent>
+            $<TARGET_FILE_DIR:Do3ThinkCameraViewer>
+    )
+    
+    # Copy DVPCamera64.dll if it exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../Do3ThinkCamera/SDK/DVPCamera64.dll")
+        add_custom_command(TARGET Do3ThinkCameraViewer POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../Do3ThinkCamera/SDK/DVPCamera64.dll"
+                $<TARGET_FILE_DIR:Do3ThinkCameraViewer>
+        )
+    endif()
+    
+    # Copy Qt DLLs
+    add_custom_command(TARGET Do3ThinkCameraViewer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:Qt6::Core>
+            $<TARGET_FILE:Qt6::Widgets>
+            $<TARGET_FILE:Qt6::Gui>
+            $<TARGET_FILE:Qt6::Concurrent>
+            $<TARGET_FILE:Qt6::Network>
+            $<TARGET_FILE:Qt6::Charts>
+            $<TARGET_FILE_DIR:Do3ThinkCameraViewer>
+    )
+endif()
