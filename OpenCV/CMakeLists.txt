@@ -51,6 +51,10 @@ add_library(ROISystem SHARED
     preprocessing_pipeline.h
     preprocessing_pipeline.cpp
     
+    # New Algorithm base class
+    algorithm_base.h
+    algorithm_base.cpp
+
     # Example preprocessors
     blur_preprocessor.h
     blur_preprocessor.cpp
@@ -58,6 +62,12 @@ add_library(ROISystem SHARED
     edge_preprocessor.cpp
     denoise_preprocessor.h
     denoise_preprocessor.cpp
+    threshold_preprocessor.h
+    threshold_preprocessor.cpp
+
+    # Example algorithms
+    contour_area_algorithm.h
+    contour_area_algorithm.cpp
 )
 
 # Link libraries
@@ -96,6 +106,9 @@ install(FILES
     preprocessor_base.h
     roi_preprocessor_base.h
     preprocessing_pipeline.h
+    algorithm_base.h
+    threshold_preprocessor.h
+    contour_area_algorithm.h
     DESTINATION include/ComponentsForest/OpenCV
 )
 

@@ -9,6 +9,11 @@
 
 namespace ComponentsForest {
 
+namespace OpenCV {
+class ThresholdPreProcessor;
+class ContourAreaAlgorithm;
+}
+
 class Do3ThinkCameraComponent;
 class BaseComponent;
 
@@ -49,6 +54,9 @@ public:
     QStringList discoverAvailableDevices();
     bool refreshDeviceList();
 
+public slots:
+    void runContourAnalysis(const QString& cameraId);
+
 signals:
     // Machine state signals
     void machineStarted();
@@ -69,6 +77,9 @@ signals:
     
     // Performance monitoring
     void performanceUpdate(const QString &cameraId, const QVariantMap &metrics);
+
+    // Analysis results
+    void contourAnalysisResult(const QString &cameraId, const QVariantList &areas);
 
 private slots:
     void onComponentStateChanged();

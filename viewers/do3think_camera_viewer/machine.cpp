@@ -1,6 +1,8 @@
 #include "machine.h"
 #include "../../Do3ThinkCamera/dothink_camera.h"
 #include "../../components/base_component.h"
+#include "../../OpenCV/threshold_preprocessor.h"
+#include "../../OpenCV/contour_area_algorithm.h"
 
 #include <iostream>
 #include <fstream>
@@ -84,6 +86,10 @@ public:
     QMap<QString, Do3ThinkCameraComponent*> components;
     QMap<QString, QThread*> componentThreads;
     QMutex componentsMutex;
+
+    // Analysis components
+    OpenCV::ThresholdPreProcessor* thresholdProcessor = nullptr;
+    OpenCV::ContourAreaAlgorithm* contourAlgorithm = nullptr;
     
     // Default configuration
     QVariantMap defaultCameraConfig;
@@ -96,6 +102,41 @@ public:
     QTimer* deviceDiscoveryTimer{nullptr};
     QStringList lastDiscoveredDevices;
 };
+
+void Do3ThinkCameraMachine::runContourAnalysis(const QString& cameraId)
+{
+    auto* camera = getCameraComponent(cameraId);
+    if (!camera) {
+        qWarning() << "Cannot run analysis, camera not found:" << cameraId;
+        return;
+    }
+
+    if (!d->thresholdProcessor || !d->contourAlgorithm) {
+        qWarning() << "Analysis components not initialized.";
+        return;
+    }
+
+    qDebug() << "Connecting processing chain for analysis...";
+
+    // Disconnect any previous connections to avoid multiple signals
+    disconnect(camera, &Do3ThinkCameraComponent::frameReady, nullptr, nullptr);
+
+    // 1. Connect Camera output to ThresholdPreprocessor input
+    connect(camera, &Do3ThinkCameraComponent::frameReady,
+            d->thresholdProcessor, &OpenCV::ThresholdPreProcessor::onFrameReceived);
+
+    // 2. Connect ThresholdPreprocessor output to ContourAreaAlgorithm input
+    connect(d->thresholdProcessor, &OpenCV::ThresholdPreProcessor::frameProcessed,
+            d->contourAlgorithm, &OpenCV::ContourAreaAlgorithm::onFrameReceived);
+
+    // 3. Connect ContourAreaAlgorithm output to this machine's signal
+    connect(d->contourAlgorithm, &OpenCV::ContourAreaAlgorithm::resultReady,
+            this, [this, cameraId](const QVariant& result){
+                emit contourAnalysisResult(cameraId, result.toList());
+            });
+
+    qDebug() << "Analysis chain connected. Waiting for next frame from" << cameraId;
+}
 
 // Constructor
 Do3ThinkCameraMachine::Do3ThinkCameraMachine(QObject *parent)
@@ -130,6 +171,17 @@ Do3ThinkCameraMachine::Do3ThinkCameraMachine(QObject *parent)
                     this, &Do3ThinkCameraMachine::refreshDeviceList);
             DEBUG_LOG("Device discovery timer created and connected");
         }
+
+        // Create and initialize analysis components
+        DEBUG_LOG("Creating analysis components");
+        d->thresholdProcessor = new OpenCV::ThresholdPreProcessor();
+        d->contourAlgorithm = new OpenCV::ContourAreaAlgorithm();
+
+        d->thresholdProcessor->initialize(QJsonObject());
+        d->contourAlgorithm->initialize(QJsonObject());
+        d->thresholdProcessor->start();
+        d->contourAlgorithm->start();
+        DEBUG_LOG("Analysis components created and started");
         
         DEBUG_LOG("Do3ThinkCameraMachine constructor completed");
         

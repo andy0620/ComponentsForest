@@ -15,6 +15,8 @@ class QTabWidget;
 class QTextEdit;
 class QListWidget;
 class QSplitter;
+class QPushButton;
+class QTextEdit;
 QT_END_NAMESPACE
 
 namespace ComponentsForest {
@@ -93,8 +95,10 @@ public slots:
     void onCameraStopped(const QString &cameraId);
     void onCameraError(const QString &cameraId, const QString &error);
     void onDevicesDiscovered(const QStringList &devices);
+    void onContourAnalysisResult(const QString &cameraId, const QVariantList &areas);
 
 private slots:
+    void onAnalyzeClicked();
     
     // Menu actions
     void onAddCamera();
@@ -181,6 +185,8 @@ private:
     QTextEdit *m_logTextEdit;
     QTabWidget *m_propertiesTabWidget;
     QTabWidget *m_imageProcessingTabWidget;  // Tab widget for preprocessor panels
+    QDockWidget *m_analysisDock;
+    QTextEdit* m_analysisResultEdit;
     
     // Central widget
     QWidget *m_centralContainer;

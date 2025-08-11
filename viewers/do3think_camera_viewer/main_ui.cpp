@@ -3,6 +3,7 @@
 #include "material_theme.h"  // Modern Material Design theme
 #include "futuristic_widgets.h"  // Custom futuristic widgets
 #include "../../Do3ThinkCamera/dothink_camera_control_panel.h"
+#include <QPushButton>
 #include "../../components/base_component.h"
 #include "../../OpenCV/preprocessor_control_panel.h"
 #include "../../OpenCV/preprocessor_base.h"
@@ -135,6 +136,10 @@ Do3ThinkCameraViewerMainUI::~Do3ThinkCameraViewerMainUI()
 void Do3ThinkCameraViewerMainUI::connectToMachine(Do3ThinkCameraMachine *machine)
 {
     m_machine = machine;
+    if (m_machine) {
+        connect(m_machine, &Do3ThinkCameraMachine::contourAnalysisResult,
+                this, &Do3ThinkCameraViewerMainUI::onContourAnalysisResult);
+    }
 }
 
 void Do3ThinkCameraViewerMainUI::disconnectFromMachine()
@@ -766,6 +771,11 @@ void Do3ThinkCameraViewerMainUI::createMenus()
         devicesAction->setText(tr("&Devices Panel"));
         m_viewMenu->addAction(devicesAction);
     }
+    if (m_analysisDock) {
+        QAction* analysisAction = m_analysisDock->toggleViewAction();
+        analysisAction->setText(tr("&Analysis Results"));
+        m_viewMenu->addAction(analysisAction);
+    }
     if (m_logDock) {
         QAction* logAction = m_logDock->toggleViewAction();
         logAction->setText(tr("&Log Panel"));
@@ -940,10 +950,47 @@ void Do3ThinkCameraViewerMainUI::createDockWidgets()
     tabifyDockWidget(m_propertiesDock, m_imageProcessingDock);
     m_propertiesDock->raise();  // Make Properties dock the default active tab
     
+    // Analysis results dock
+    m_analysisDock = new QDockWidget(tr("Analysis"), this);
+    m_analysisDock->setObjectName("analysisDock");
+    QWidget* analysisWidget = new QWidget();
+    QVBoxLayout* analysisLayout = new QVBoxLayout(analysisWidget);
+    QPushButton* analyzeButton = new QPushButton(tr("Run Contour Analysis"));
+    m_analysisResultEdit = new QTextEdit();
+    m_analysisResultEdit->setReadOnly(true);
+    analysisLayout->addWidget(analyzeButton);
+    analysisLayout->addWidget(m_analysisResultEdit);
+    m_analysisDock->setWidget(analysisWidget);
+    addDockWidget(Qt::RightDockWidgetArea, m_analysisDock);
+    connect(analyzeButton, &QPushButton::clicked, this, &Do3ThinkCameraViewerMainUI::onAnalyzeClicked);
+
     // Start with Image Processing dock hidden by default
     // It will only appear when user clicks the "Preprocess" action
     m_imageProcessingDock->hide();
     m_imageProcessingDock->setFloating(false);  // Start docked, but hidden
+}
+
+void Do3ThinkCameraViewerMainUI::onAnalyzeClicked()
+{
+    if (!m_machine) return;
+    QString cameraId = getCurrentCameraId();
+    if (cameraId.isEmpty()) {
+        showStatusMessage("No active camera to analyze.", 3000);
+        return;
+    }
+    showStatusMessage("Starting contour analysis for " + cameraId, 3000);
+    m_machine->runContourAnalysis(cameraId);
+}
+
+void Do3ThinkCameraViewerMainUI::onContourAnalysisResult(const QString &cameraId, const QVariantList &areas)
+{
+    if (cameraId != getCurrentCameraId()) return; // Only show results for active camera
+
+    QString resultText = QString("Contour Analysis for %1:\nFound %2 contours.\n\nAreas:\n").arg(cameraId).arg(areas.size());
+    for (const QVariant& area : areas) {
+        resultText += QString::number(area.toDouble(), 'f', 2) + "\n";
+    }
+    m_analysisResultEdit->setText(resultText);
 }
 
 void Do3ThinkCameraViewerMainUI::createCentralWidget()
