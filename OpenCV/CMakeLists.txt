@@ -68,6 +68,12 @@ add_library(ROISystem SHARED
     # Example algorithms
     contour_area_algorithm.h
     contour_area_algorithm.cpp
+    histogram_algorithm.h
+    histogram_algorithm.cpp
+
+    # More Preprocessors
+    morphology_preprocessor.h
+    morphology_preprocessor.cpp
 )
 
 # Link libraries
@@ -109,6 +115,8 @@ install(FILES
     algorithm_base.h
     threshold_preprocessor.h
     contour_area_algorithm.h
+    morphology_preprocessor.h
+    histogram_algorithm.h
     DESTINATION include/ComponentsForest/OpenCV
 )
 
